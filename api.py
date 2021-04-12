@@ -39,6 +39,7 @@ class GooglePlay:
         self.toc()
         self.get_user_profile()
     
+    @staticmethod
     def from_config(filename):
         config = ConfigParser()
         config.read(filename)
@@ -63,16 +64,16 @@ class GooglePlay:
     def user_agent(self):
         params = [
             "api=3",
-            f"versionCode=" + self.properties['vending.version'],
-            f"sdk=" + self.properties['build.version.sdk_int'],
-            f"device=" + self.properties['build.device'],
-            f"hardware=" + self.properties['build.hardware'],
-            f"product=" + self.properties['build.product'],
-            f"platformVersionRelease=" + self.properties['build.version.release'],
-            f"model=" + self.properties['build.model'],
-            f"buildId=" + self.properties['build.id'],
+            f"versionCode=" + self.properties["vending.version"],
+            f"sdk=" + self.properties["build.version.sdk_int"],
+            f"device=" + self.properties["build.device"],
+            f"hardware=" + self.properties["build.hardware"],
+            f"product=" + self.properties["build.product"],
+            f"platformVersionRelease=" + self.properties.get('build.version.release', "0"),
+            f"model=" + self.properties["build.model"],
+            f"buildId=" + self.properties.get("build.id", "0"),
             "isWideScreen=0",
-            f"supportedAbis=" + self.properties['platforms'].replace(',', ';')
+            f"supportedAbis=" + self.properties["platforms"].replace(",", ";")
         ]
         
         return "Android-Finsky/" + self.properties.get('vending.versionstring', '8.4.19.V-all [0] [FP] 175058788') + f" ({','.join(params)})"
@@ -81,7 +82,7 @@ class GooglePlay:
     def auth_headers(self):
         headers = {
             "app": "com.google.android.gms",
-            "User-Agent": f"GoogleAuth/1.4 ({self.properties['build.device']}) " + self.properties['build.id']
+            "User-Agent": f"GoogleAuth/1.4 ({self.properties['build.device']}) " + self.properties.get("build.id", "0")
         }
         
         if self.gsf_id:
@@ -319,10 +320,10 @@ class GooglePlay:
     def purchase(self, package, version_code, offer_type=1):
         return self.api_request("https://android.clients.google.com/fdfe/purchase", params={"ot": offer_type, "doc": package, "vc": version_code}, post=True).buyResponse.downloadToken
     
-    def reviews(self, package, number=None):
+    def reviews(self, package, number=None, sort=2):
         params = {
             "doc": package,
-            "sort": "2"
+            "sort": str(sort)
         }
         
         if number:
